@@ -2,7 +2,6 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
 from kivy.clock import Clock
 from functools import partial
 import threading
@@ -10,7 +9,7 @@ import pyttsx3
 import os
 
 from utils.file_operations import load_audios, save_audios
-from utils.audio_utils import create_audio_directory
+from utils.create_directory import create_audio_directory
 
 # ввод текста
 class CreateAudioScreen(Screen):
@@ -46,8 +45,6 @@ class CreateAudioScreen(Screen):
         try:
             # Патчим NSSpeechDriver: если атрибута _current_text нет, устанавливаем его в пустую строку
             engine = pyttsx3.init(driverName='nsss')
-            # if hasattr(engine, '_driver'):
-            #     engine._driver.__dict__['_current_text'] = ""
             
             audio_dir = create_audio_directory()
             audios = load_audios()
@@ -58,10 +55,7 @@ class CreateAudioScreen(Screen):
             # Сохраняем аудио в файл и ожидаем завершения синтеза
             try:
                 engine.save_to_file(text, audio_file_path)
-                engine.runAndWait()  # Блокирует выполнение до завершения синтеза
-                # if hasattr(engine, '_driver'):
-                #     engine._driver.__dict__['_current_text'] = ""
-                # engine.stop()       # Останавливаем движок после завершения работы
+                engine.runAndWait()
                 print("Синтез речи завершён.")
             except Exception as e:
                 print(f"Ошибка при синтезе речи: {e}")

@@ -10,6 +10,6 @@ def play_audio(audio_path):
     if sys.platform.startswith('win'):
         os.startfile(audio_path)
     elif sys.platform.startswith('darwin'):
-        subprocess.Popen(["open", audio_path])
+        subprocess.Popen(["afplay", audio_path])
     else:
         subprocess.Popen(["xdg-open", audio_path])
