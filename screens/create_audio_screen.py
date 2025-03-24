@@ -44,10 +44,10 @@ class CreateAudioScreen(Screen):
 
     def process_audio(self, text):
         try:
-            engine = pyttsx3.init()
             # Патчим NSSpeechDriver: если атрибута _current_text нет, устанавливаем его в пустую строку
-            if hasattr(engine, '_driver') and not hasattr(engine._driver, '_current_text'):
-                engine._driver._current_text = ""
+            engine = pyttsx3.init(driverName='nsss')
+            # if hasattr(engine, '_driver'):
+            #     engine._driver.__dict__['_current_text'] = ""
             
             audio_dir = create_audio_directory()
             audios = load_audios()
@@ -59,7 +59,9 @@ class CreateAudioScreen(Screen):
             try:
                 engine.save_to_file(text, audio_file_path)
                 engine.runAndWait()  # Блокирует выполнение до завершения синтеза
-                engine.stop()       # Останавливаем движок после завершения работы
+                # if hasattr(engine, '_driver'):
+                #     engine._driver.__dict__['_current_text'] = ""
+                # engine.stop()       # Останавливаем движок после завершения работы
                 print("Синтез речи завершён.")
             except Exception as e:
                 print(f"Ошибка при синтезе речи: {e}")
