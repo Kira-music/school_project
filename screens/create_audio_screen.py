@@ -1,3 +1,4 @@
+import multiprocessing
 from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
@@ -10,6 +11,7 @@ import os
 
 from utils.file_operations import load_audios, save_audios
 from utils.create_directory import create_audio_directory
+from utils.synthesize_audio import synthesize_audio
 
 # ввод текста
 class CreateAudioScreen(Screen):
@@ -31,46 +33,29 @@ class CreateAudioScreen(Screen):
     def create_audio(self, instance):
         text = self.text_input.text
         if text:
-            threading.Thread(target=self.process_audio, args=(text,), daemon=True).start()
-
-    
-    def save_audio(self, instance):
-        text = self.text_input.text.strip()
-        if text:
-            threading.Thread(target=self.process_audio, args=(text,), daemon=True).start()
-
-
-
-    def process_audio(self, text):
-        try:
-            # Патчим NSSpeechDriver: если атрибута _current_text нет, устанавливаем его в пустую строку
-            engine = pyttsx3.init(driverName='nsss')
-            
             audio_dir = create_audio_directory()
             audios = load_audios()
             audio_file_name = f"audio_{len(audios) + 1}.wav"  # используем формат WAV
             audio_file_path = os.path.join(audio_dir, audio_file_name)
             print("Путь к сохраняемому файлу:", audio_file_path)
-            
-            # Сохраняем аудио в файл и ожидаем завершения синтеза
-            try:
-                engine.save_to_file(text, audio_file_path)
-                engine.runAndWait()
-                print("Синтез речи завершён.")
-            except Exception as e:
-                print(f"Ошибка при синтезе речи: {e}")
-                return
 
-            if os.path.exists(audio_file_path):
-                print("Файл успешно сохранён:", audio_file_path)
-            else:
-                print("Файл не найден после синтеза:", audio_file_path)
-            
-            audios.append(audio_file_path)
-            save_audios(audios)
-            Clock.schedule_once(partial(self.update_ui, audio_file_path), 0)
-        except Exception as e:
-            print(f"Ошибка TTS: {e}")
+            proc = multiprocessing.Process(target=synthesize_audio, args=(text, audio_file_path))
+            proc.start()
+            threading.Thread(target=self.wait_for_process_audio, args=(proc, audio_file_path), daemon=True).start()
+
+
+
+    def wait_for_process_audio(self, proc, audio_file_path):
+        proc.join()
+        if os.path.exists(audio_file_path):
+            print("Файл успешно сохранён:", audio_file_path)
+        else:
+            print("Файл не найден после синтеза:", audio_file_path)
+        
+        audios = load_audios()
+        audios.append(audio_file_path)
+        save_audios(audios)
+        Clock.schedule_once(partial(self.update_ui, audio_file_path), 0)
 
 
 
@@ -78,7 +63,6 @@ class CreateAudioScreen(Screen):
         print(f"Файл {audio_file_path} успешно сохранён.")
         # Переключаемся на экран списка аудиофайлов, где можно будет воспроизвести сохранённое аудио
         self.manager.current = 'audio_list_screen'
-
 
     def goto_audio_list(self, instance):
         self.manager.current = 'audio_list_screen'
