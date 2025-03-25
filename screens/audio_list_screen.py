@@ -29,6 +29,14 @@ class AudioListScreen(Screen):
 
         self.add_widget(self.layout)
 
+    def on_pre_enter(self):
+        print("AudioListScreen: on_pre_enter вызван")
+        self.update_audio_list()    
+
+    def on_enter(self):
+        print("AudioListScreen: on_enter вызван")
+        self.update_audio_list()
+
     def update_audio_list(self):
         self.list_layout.clear_widgets()
         audios = load_audios()

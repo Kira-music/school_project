@@ -61,8 +61,14 @@ class CreateAudioScreen(Screen):
 
     def update_ui(self, audio_file_path, *args):
         print(f"Файл {audio_file_path} успешно сохранён.")
+        # Получаем экземпляр экрана списка аудио
+        audio_screen = self.manager.get_screen('audio_list_screen')
+        # Явно обновляем список файлов
+        audio_screen.update_audio_list()
         # Переключаемся на экран списка аудиофайлов, где можно будет воспроизвести сохранённое аудио
-        self.manager.current = 'audio_list_screen'
+        # self.manager.current = 'audio_list_screen'
+        from kivy.clock import Clock
+        Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'audio_list_screen'), 0.1)
 
     def goto_audio_list(self, instance):
         self.manager.current = 'audio_list_screen'
