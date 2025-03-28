@@ -1,7 +1,7 @@
 import multiprocessing
 from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
+from utils.my_textinput import MyTextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 from functools import partial
@@ -18,10 +18,18 @@ class CreateAudioScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.layout = BoxLayout(orientation='vertical')
-        self.text_input = TextInput(hint_text="Введите текст для аудирования", multiline=True)
-        button_create = Button(text="Создать аудирование", on_press=self.create_audio)
-        button_audio_list = Button(text="Список аудио", on_press=self.goto_audio_list)
-        button_back = Button(text="Назад", on_press=self.goto_welcome)
+        self.text_input = MyTextInput(hint_text="Введите текст для аудирования", multiline=True)
+        self.text_input = MyTextInput(
+            hint_text="Введите текст для аудирования",
+            multiline=True,
+            size_hint=(1, 0.6)
+        )
+
+        self.text_input.focus = True  # Можно принудительно установить фокус
+
+        button_create = Button(text="Создать аудирование", size_hint=(1, 0.1), pos_hint={'center_x': 0.5}, font_size='16sp', on_press=self.create_audio)
+        button_audio_list = Button(text="Список аудио", size_hint=(1, 0.1), pos_hint={'center_x': 0.5}, font_size='16sp', on_press=self.goto_audio_list)
+        button_back = Button(text="Назад", size_hint=(1, 0.1), pos_hint={'center_x': 0.5}, font_size='16sp', on_press=self.goto_welcome)
 
         self.layout.add_widget(self.text_input)
         self.layout.add_widget(button_create)
@@ -29,6 +37,11 @@ class CreateAudioScreen(Screen):
         self.layout.add_widget(button_back)
 
         self.add_widget(self.layout)
+
+    def paste_text(self, instance):
+        pasted_text = Clipboard.paste()
+        if pasted_text:
+            self.text_input.text += pasted_text
 
     def create_audio(self, instance):
         text = self.text_input.text
@@ -43,8 +56,6 @@ class CreateAudioScreen(Screen):
             proc.start()
             threading.Thread(target=self.wait_for_process_audio, args=(proc, audio_file_path), daemon=True).start()
 
-
-
     def wait_for_process_audio(self, proc, audio_file_path):
         proc.join()
         if os.path.exists(audio_file_path):
@@ -57,16 +68,12 @@ class CreateAudioScreen(Screen):
         save_audios(audios)
         Clock.schedule_once(partial(self.update_ui, audio_file_path), 0)
 
-
-
     def update_ui(self, audio_file_path, *args):
         print(f"Файл {audio_file_path} успешно сохранён.")
         # Получаем экземпляр экрана списка аудио
         audio_screen = self.manager.get_screen('audio_list_screen')
-        # Явно обновляем список файлов
         audio_screen.update_audio_list()
         # Переключаемся на экран списка аудиофайлов, где можно будет воспроизвести сохранённое аудио
-        # self.manager.current = 'audio_list_screen'
         from kivy.clock import Clock
         Clock.schedule_once(lambda dt: setattr(self.manager, 'current', 'audio_list_screen'), 0.1)
 
