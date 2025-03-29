@@ -14,4 +14,4 @@ class AudioProcessor:
 
   @staticmethod
   def load_audios():
-    return [file for file in os.listdir(AudioProcessor.AUDIO_DIR) if file.endswith('mp3')]
+    return [file for file in os.listdir(AudioProcessor.AUDIO_DIR) if file.endswith('.wav')]

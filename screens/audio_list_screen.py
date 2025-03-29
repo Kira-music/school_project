@@ -8,7 +8,7 @@ import os
 
 
 from utils.file_operations import load_audios, save_audios
-from utils.audio_player import play_audio
+from utils.audio_player import play_audio, pause_audio, resume_audio, stop_audio
 
 class AudioListScreen(Screen):
     def __init__(self, **kwargs):
@@ -19,15 +19,55 @@ class AudioListScreen(Screen):
         self.list_layout = BoxLayout(orientation='vertical', size_hint_y=None)
         self.list_layout.bind(minimum_height=self.list_layout.setter('height'))
 
-        # показ аудирования
+        # Изначально обновляем список аудио
         self.update_audio_list()
         self.scroll_view.add_widget(self.list_layout)
         self.layout.add_widget(self.scroll_view)
 
-        button_back = Button(text="Назад", on_press=self.goto_input)
+        # Добавляем глобальные кнопки управления воспроизведением
+        button_pause = Button(
+            text="Пауза",
+            size_hint=(1, 0.1),
+            pos_hint={'center_x': 0.5},
+            font_size='16sp',
+            on_press=self.pause_audio
+        )
+        button_resume = Button(
+            text="Продолжить",
+            size_hint=(1, 0.1),
+            pos_hint={'center_x': 0.5},
+            font_size='16sp',
+            on_press=self.resume_audio
+        )
+        button_stop = Button(
+            text="Стоп",
+            size_hint=(1, 0.1),
+            pos_hint={'center_x': 0.5},
+            font_size='16sp',
+            on_press=self.stop_audio
+        )
+        self.layout.add_widget(button_pause)
+        self.layout.add_widget(button_resume)
+        self.layout.add_widget(button_stop)
+
+        button_back = Button(
+            text="Назад",
+            size_hint=(1, 0.1),
+            pos_hint={'center_x': 0.5},
+            font_size='16sp',
+            on_press=self.goto_input
+        )
         self.layout.add_widget(button_back)
 
         self.add_widget(self.layout)
+
+    def on_pre_enter(self):
+        print("AudioListScreen: on_pre_enter вызван")
+        self.update_audio_list()    
+
+    def on_enter(self):
+        print("AudioListScreen: on_enter вызван")
+        self.update_audio_list()
 
     def update_audio_list(self):
         self.list_layout.clear_widgets()
@@ -54,12 +94,15 @@ class AudioListScreen(Screen):
 
     def play_audio(self, audio, *args):
         play_audio(audio)
-        # if sys.platform == "win32":
-        #     os.system(f"start {audio}")  
-        # elif sys.platform == "darwin":
-        #     os.system(f"open {audio}") 
-        # else:
-        #     os.system(f"xdg-open {audio}")
+
+    def pause_audio(self, instance):
+        pause_audio()
+
+    def resume_audio(self, instance):
+        resume_audio()
+
+    def stop_audio(self, instance):
+        stop_audio()
 
     def delete_audio(self, audio, *args):
         try:
